@@ -1,0 +1,85 @@
+from sklearn.ensemble import RandomForestClassifier 
+from sklearn import metrics 
+
+classes = [HadamardEmbedder, AverageEmbedder, WeightedL1Embedder, WeightedL2Embedder]
+for cl in classes:
+    embeddings_train = cl(keyed_vectors=model_train.wv) 
+
+    train_embeddings = [embeddings_train[str(edgs[x][0]), str(edgs[x][1])] for x in train_edges]
+    test_embeddings = [embeddings_train[str(edgs[x][0]), str(edgs[x][1])] for x in test_edges]
+    
+    rf = RandomForestClassifier(n_estimators=1000, random_state=42) 
+    rf.fit(train_embeddings, train_labels); 
+
+    y_pred = rf.predict(test_embeddings)
+    print(cl)
+    print('Precision:', metrics.precision_score(test_labels, y_pred)) 
+    print('Recall:', metrics.recall_score(test_labels, y_pred)) 
+    print('F1-Score:', metrics.f1_score(test_labels, y_pred)) 
+
+<class 'node2vec.edges.HadamardEmbedder'>
+Precision: 0.7652859960552268
+Recall: 0.5197588747488279
+F1-Score: 0.6190666134822497
+<class 'node2vec.edges.AverageEmbedder'>
+Precision: 0.7341211225997046
+Recall: 0.6657736101808439
+F1-Score: 0.698278890059712
+<class 'node2vec.edges.WeightedL1Embedder'>
+Precision: 0.6166259168704157
+Recall: 0.8446081714668453
+F1-Score: 0.712832108535896
+<class 'node2vec.edges.WeightedL2Embedder'>
+Precision: 0.618208516886931
+Recall: 0.8459477561955794
+F1-Score: 0.7143665158371042
+
+
+
+Unsupervised
+============
+
+from sklearn.cluster import KMeans
+
+classes = [HadamardEmbedder, AverageEmbedder, WeightedL1Embedder, WeightedL2Embedder]
+true_labels = [x for x in nx.get_edge_attributes(G_down, "label").values()]
+
+for cl in classes:
+    embedding_edge = cl(keyed_vectors=unsup_vals.wv) 
+
+    embedding = [embedding_edge[str(x[0]), str(x[1])] for x in G_down.edges()]
+    kmeans = KMeans(2, random_state=42).fit(embedding)
+    
+    
+    nmi = metrics.adjusted_mutual_info_score(true_labels, kmeans.labels_)
+    ho = metrics.homogeneity_score(true_labels, kmeans.labels_)
+    co = metrics.completeness_score(true_labels, kmeans.labels_)
+    vmeasure = metrics.v_measure_score(true_labels, kmeans.labels_)
+    
+    print(cl)
+    print('NMI:', nmi)
+    print('Homogeneity:', ho)
+    print('Completeness:', co)
+    print('V-Measure:', vmeasure)
+
+
+<class 'node2vec.edges.HadamardEmbedder'>
+NMI: 0.3434761733070354
+Homogeneity: 0.33186917904313046
+Completeness: 0.3559965316541601
+V-Measure: 0.34350971378557277
+<class 'node2vec.edges.AverageEmbedder'>
+NMI: 0.07509163068752496
+Homogeneity: 0.07434583487085315
+Completeness: 0.0759467520741665
+V-Measure: 0.07513776698446421
+<class 'node2vec.edges.WeightedL1Embedder'>
+NMI: 0.06292837593355008
+Homogeneity: 0.06297662275863868
+Completeness: 0.0629726266511482
+V-Measure: 0.06297462464149936
+<class 'node2vec.edges.WeightedL2Embedder'>
+NMI: 0.05118782384823713
+Homogeneity: 0.05066598619086717
+Completeness: 0.05181730760841758
+V-Measure: 0.0512351797918955
